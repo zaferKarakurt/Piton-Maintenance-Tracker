@@ -28,7 +28,7 @@ Bu proje, sahadaki donanım ürünlerinin (HMI, LED Panel, LCD) bakım süreçle
 2. **Firebase:** Kendi Firebase projenizi oluşturun, `google-services.json` dosyasını `app/` dizinine ekleyin.
 3. **Test Hesapları:**
    - Admin: `admin@test.com` / `123456`
-   - Personel: `personel@test.com` / `123456`
+   - Personel: `personel@test.com` / `123456` 
 
 
 <img width="384" height="859" alt="Ekran görüntüsü 2026-05-30 083955" src="https://github.com/user-attachments/assets/49e55b77-8436-426d-b805-1591e73ab391" />
