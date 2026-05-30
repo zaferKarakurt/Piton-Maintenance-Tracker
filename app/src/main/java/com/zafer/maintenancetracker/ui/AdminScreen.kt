@@ -16,15 +16,19 @@ import coil.compose.AsyncImage
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
-
+import com.google.firebase.Timestamp
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 data class MaintenanceLog(
     val id: String = "",
     val deviceId: String = "",
+    val deviceName: String = "",
     val personnelEmail: String = "",
     val status: String = "",
     val note: String = "",
-    val photoUrl: String = ""
+    val photoUrl: String = "",
+    val timestamp: Timestamp? = null
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -32,8 +36,8 @@ data class MaintenanceLog(
 fun AdminScreen(navController: NavController) {
     val context = LocalContext.current
     var logs by remember { mutableStateOf<List<MaintenanceLog>>(emptyList()) }
+    var deviceMap by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
     var isLoading by remember { mutableStateOf(true) }
-
 
     var showAddUserDialog by remember { mutableStateOf(false) }
     var newUserEmail by remember { mutableStateOf("") }
@@ -41,33 +45,46 @@ fun AdminScreen(navController: NavController) {
     val roleOptions = listOf("personnel", "admin")
     var selectedRole by remember { mutableStateOf(roleOptions[0]) }
 
-
     LaunchedEffect(Unit) {
         val db = FirebaseFirestore.getInstance()
-        db.collection("MaintenanceLogs")
-            .orderBy("timestamp", Query.Direction.DESCENDING)
-            .addSnapshotListener { snapshot, e ->
-                if (e != null) {
-                    isLoading = false
-                    return@addSnapshotListener
-                }
 
-                if (snapshot != null) {
-                    val logList = snapshot.documents.map { doc ->
-                        MaintenanceLog(
-                            id = doc.id,
-                            deviceId = doc.getString("deviceId") ?: "Bilinmiyor",
-                            personnelEmail = doc.getString("personnelEmail") ?: "Bilinmiyor",
-                            status = doc.getString("status") ?: "Bilinmiyor",
-                            note = doc.getString("note") ?: "Not yok",
-                            photoUrl = doc.getString("photoUrl") ?: ""
-                        )
-                    }
-                    logs = logList
-                    isLoading = false
-                }
+        // Önce Inventory'den cihaz adlarını çek
+        db.collection("Inventory").get().addOnSuccessListener { inventorySnapshot ->
+            val map = inventorySnapshot.documents.associate { doc ->
+                doc.id to (doc.getString("name") ?: "Bilinmiyor")
             }
+            deviceMap = map
+
+            // Sonra logları çek
+            db.collection("MaintenanceLogs")
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .addSnapshotListener { snapshot, e ->
+                    if (e != null) {
+                        isLoading = false
+                        return@addSnapshotListener
+                    }
+                    if (snapshot != null) {
+                        val logList = snapshot.documents.map { doc ->
+                            val devId = doc.getString("deviceId") ?: ""
+                            MaintenanceLog(
+                                id = doc.id,
+                                deviceId = devId,
+                                deviceName = map[devId] ?: "Bilinmiyor",
+                                personnelEmail = doc.getString("personnelEmail") ?: "Bilinmiyor",
+                                status = doc.getString("status") ?: "Bilinmiyor",
+                                note = doc.getString("note") ?: "Not yok",
+                                photoUrl = doc.getString("photoUrl") ?: "",
+                                timestamp = doc.getTimestamp("timestamp")
+                            )
+                        }
+                        logs = logList
+                        isLoading = false
+                    }
+                }
+        }
     }
+
+    val dateFormatter = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale("tr"))
 
     Scaffold(
         topBar = {
@@ -84,7 +101,6 @@ fun AdminScreen(navController: NavController) {
                 onClick = { showAddUserDialog = true },
                 containerColor = MaterialTheme.colorScheme.primary
             ) {
-                // İKON YERİNE DÜZ METİN KULLANIYORUZ, HATA VERMEYECEK
                 Text("+", style = MaterialTheme.typography.headlineMedium)
             }
         }
@@ -122,15 +138,35 @@ fun AdminScreen(navController: NavController) {
                                     modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    Text(text = "Cihaz ID: ${log.deviceId}", style = MaterialTheme.typography.titleMedium)
-                                    Text(text = log.status, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+                                    Text(
+                                        text = log.deviceName,
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                    Text(
+                                        text = log.status,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
                                 }
 
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(text = "Raporlayan: ${log.personnelEmail}", style = MaterialTheme.typography.bodySmall)
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "Raporlayan: ${log.personnelEmail}",
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = "Tarih: ${log.timestamp?.toDate()?.let { dateFormatter.format(it) } ?: "Bilinmiyor"}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
 
                                 Spacer(modifier = Modifier.height(8.dp))
-                                Text(text = "Not: ${log.note}", style = MaterialTheme.typography.bodyLarge)
+                                Text(
+                                    text = "Not: ${log.note}",
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
 
                                 if (log.photoUrl.isNotEmpty()) {
                                     Spacer(modifier = Modifier.height(12.dp))
@@ -150,7 +186,6 @@ fun AdminScreen(navController: NavController) {
             }
         }
 
-        // KULLANICI EKLEME PENCERESİ
         if (showAddUserDialog) {
             AlertDialog(
                 onDismissRequest = { showAddUserDialog = false },
@@ -187,12 +222,9 @@ fun AdminScreen(navController: NavController) {
                             if (newUserEmail.isNotEmpty() && newUserPassword.length >= 6) {
                                 val auth = FirebaseAuth.getInstance()
                                 val db = FirebaseFirestore.getInstance()
-
                                 auth.createUserWithEmailAndPassword(newUserEmail, newUserPassword)
                                     .addOnSuccessListener { authResult ->
                                         val uid = authResult.user?.uid ?: return@addOnSuccessListener
-
-                                        // Firestore'a kaydet
                                         val userMap = hashMapOf(
                                             "email" to newUserEmail,
                                             "role" to selectedRole
@@ -201,9 +233,8 @@ fun AdminScreen(navController: NavController) {
                                             .addOnSuccessListener {
                                                 showAddUserDialog = false
                                                 Toast.makeText(context, "Kullanıcı eklendi! Güvenlik için giriş ekranına yönlendiriliyorsunuz.", Toast.LENGTH_LONG).show()
-                                                // Auth değiştiği için login ekranına atıyoruz
                                                 navController.navigate("login_screen") {
-                                                    popUpTo(0) // Geçmişi temizle
+                                                    popUpTo(0)
                                                 }
                                             }
                                     }
