@@ -29,15 +29,15 @@ class MainActivity : ComponentActivity() {
                 ) {
                     val loginViewModel: LoginViewModel = viewModel()
 
-                    // Trafik polisimizi oluşturuyoruz (Sayfa geçişleri için)
+
                     val navController = rememberNavController()
 
-                    // Hangi ekranların olduğunu NavHost ile tanımlıyoruz
+
                     NavHost(
                         navController = navController,
-                        startDestination = "login_screen" // Uygulama ilk bu ekrandan başlar
+                        startDestination = "login_screen"
                     ) {
-                        // 1. Giriş Ekranı
+
                         composable("login_screen") {
                             LoginScreen(
                                 viewModel = loginViewModel,
@@ -47,23 +47,23 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // 2. Admin Ekranı
+
                         composable("admin_screen") {
                             AdminScreen(navController = navController)
                         }
 
-                        // 3. Personel Ekranı (navController'ı içeri gönderdik ki sayfa değiştirebilsin)
+
                         composable("personnel_screen") {
                             PersonnelScreen(navController = navController)
                         }
 
-                        // 4. Durum Kontrol Ekranı (Yeni Ekranımız)
+
                         composable("status_check_screen/{deviceId}") { backStackEntry ->
-                            // Tıklanan cihazın ID'sini yakalıyoruz
+
                             val deviceId = backStackEntry.arguments?.getString("deviceId") ?: ""
                             StatusCheckScreen(
                                 deviceId = deviceId,
-                                onNavigateBack = { navController.popBackStack() } // İşimizi bitirince geri dönme komutu
+                                onNavigateBack = { navController.popBackStack() }
                             )
                         }
                     }

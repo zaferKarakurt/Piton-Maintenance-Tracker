@@ -12,7 +12,7 @@ import com.zafer.maintenancetracker.viewmodel.LoginViewModel
 @Composable
 fun LoginScreen(
     viewModel: LoginViewModel,
-    onNavigate: (String) -> Unit // Başarılı girişte rolüne göre diğer ekrana yönlendirecek
+    onNavigate: (String) -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -58,7 +58,6 @@ fun LoginScreen(
                 errorMessage = ""
                 viewModel.loginUser(email, password) { isSuccess, resultOrRole ->
                     if (isSuccess) {
-                        // resultOrRole burada kullanıcının rolü olarak geliyor ("admin" veya "personnel")
                         if (resultOrRole == "admin") {
                             onNavigate("admin_screen")
                         } else {

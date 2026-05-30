@@ -40,7 +40,7 @@ fun StatusCheckScreen(
     var selectedStatus by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
 
-    // Fotoğraf İşlemleri İçin Değişkenler
+
     var capturedImage by remember { mutableStateOf<Bitmap?>(null) }
     var uploadedImageUrl by remember { mutableStateOf("") }
     var isUploading by remember { mutableStateOf(false) }
@@ -53,7 +53,7 @@ fun StatusCheckScreen(
             capturedImage = bitmap
             isUploading = true
 
-            // Fotoğrafı Cloudinary'ye Yükleme İşlemi
+
             coroutineScope.launch {
                 val url = uploadToCloudinary(bitmap)
                 isUploading = false
@@ -67,7 +67,7 @@ fun StatusCheckScreen(
         }
     }
 
-    // 2. İzin İsteme Başlatıcı
+    // Kamera izni
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
@@ -114,15 +114,14 @@ fun StatusCheckScreen(
                 minLines = 3
             )
 
-            // EĞER ARIZALI SEÇİLİRSE KAMERA BUTONU ÇIKAR
+
             if (selectedStatus == "Arızalı") {
                 Button(
                     onClick = {
-                        // DİREKT KAMERAYI AÇMAK YERİNE ÖNCE İZNİ KONTROL EDİYORUZ
                         if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-                            cameraLauncher.launch(null) // Zaten izin varsa direkt aç
+                            cameraLauncher.launch(null)
                         } else {
-                            permissionLauncher.launch(Manifest.permission.CAMERA) // Yoksa izin iste
+                            permissionLauncher.launch(Manifest.permission.CAMERA)
                         }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary),
@@ -131,7 +130,7 @@ fun StatusCheckScreen(
                     Text("Kamerayı Aç ve Fotoğraf Çek")
                 }
 
-                // Yükleniyorsa dönen çubuk göster, yüklendiyse fotoğrafı küçük ekranda göster
+
                 if (isUploading) {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
                     Text("Buluta yükleniyor, lütfen bekleyin...", modifier = Modifier.align(Alignment.CenterHorizontally))
@@ -150,26 +149,24 @@ fun StatusCheckScreen(
 
             Button(
                 onClick = {
-                    // 1. Veritabanı ve anlık giriş yapan kullanıcıyı çağırıyoruz
                     val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
                     val currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
 
-                    // 2. Rapor paketimizi hazırlıyoruz
                     val logData = hashMapOf(
                         "deviceId" to deviceId,
                         "personnelEmail" to (currentUser?.email ?: "Bilinmiyor"),
                         "status" to selectedStatus,
                         "note" to note,
-                        "photoUrl" to uploadedImageUrl, // Cloudinary'den dönen fotoğraf linki!
-                        "timestamp" to com.google.firebase.firestore.FieldValue.serverTimestamp() // O anki tarih/saat
+                        "photoUrl" to uploadedImageUrl,
+                        "timestamp" to com.google.firebase.firestore.FieldValue.serverTimestamp()
                     )
 
-                    // 3. Paketi MaintenanceLogs koleksiyonuna fırlatıyoruz
+
                     db.collection("MaintenanceLogs")
                         .add(logData)
                         .addOnSuccessListener {
                             Toast.makeText(context, "Rapor başarıyla kaydedildi!", Toast.LENGTH_LONG).show()
-                            onNavigateBack() // İşlem bitince personeli listeye geri döndür
+                            onNavigateBack()
                         }
                         .addOnFailureListener { e ->
                             Toast.makeText(context, "Hata oluştu: ${e.message}", Toast.LENGTH_LONG).show()
@@ -184,7 +181,7 @@ fun StatusCheckScreen(
     }
 }
 
-// Buluta (Cloudinary) Fotoğraf Fırlatan Fonksiyon
+
 suspend fun uploadToCloudinary(bitmap: Bitmap): String? {
     return withContext(Dispatchers.IO) {
         try {

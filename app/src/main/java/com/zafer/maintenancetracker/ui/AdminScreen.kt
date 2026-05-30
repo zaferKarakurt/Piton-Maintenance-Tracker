@@ -17,7 +17,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 
-// Gelen rapor verilerini tutacağımız model
+
 data class MaintenanceLog(
     val id: String = "",
     val deviceId: String = "",
@@ -34,14 +34,14 @@ fun AdminScreen(navController: NavController) {
     var logs by remember { mutableStateOf<List<MaintenanceLog>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
 
-    // Yeni Kullanıcı Ekleme Modalı İçin Değişkenler
+
     var showAddUserDialog by remember { mutableStateOf(false) }
     var newUserEmail by remember { mutableStateOf("") }
     var newUserPassword by remember { mutableStateOf("") }
     val roleOptions = listOf("personnel", "admin")
     var selectedRole by remember { mutableStateOf(roleOptions[0]) }
 
-    // EKRAN AÇILINCA REAL-TIME (ANLIK) DİNLEMEYİ BAŞLAT
+
     LaunchedEffect(Unit) {
         val db = FirebaseFirestore.getInstance()
         db.collection("MaintenanceLogs")
@@ -150,7 +150,7 @@ fun AdminScreen(navController: NavController) {
             }
         }
 
-        // KULLANICI EKLEME PENCERESİ (DIALOG)
+        // KULLANICI EKLEME PENCERESİ
         if (showAddUserDialog) {
             AlertDialog(
                 onDismissRequest = { showAddUserDialog = false },

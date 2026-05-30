@@ -12,7 +12,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.firebase.firestore.FirebaseFirestore
 
-// Cihaz verilerini tutacak basit bir model sınıfı
 data class Device(
     val id: String = "",
     val name: String = "",
@@ -23,11 +22,10 @@ data class Device(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PersonnelScreen(navController: NavController) {
-    // Firestore'dan çekeceğimiz cihaz listesini tutan State
+
     var deviceList by remember { mutableStateOf<List<Device>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
 
-    // Ekran ilk açıldığında Firestore'dan verileri çekiyoruz
     LaunchedEffect(Unit) {
         val db = FirebaseFirestore.getInstance()
         db.collection("Inventory")
@@ -66,7 +64,6 @@ fun PersonnelScreen(navController: NavController) {
                 .padding(paddingValues)
         ) {
             if (isLoading) {
-                // Veriler yüklenirken dönecek olan çubuk
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             } else if (deviceList.isEmpty()) {
                 Text(
@@ -74,7 +71,6 @@ fun PersonnelScreen(navController: NavController) {
                     modifier = Modifier.align(Alignment.Center)
                 )
             } else {
-                // Cihazların listelendiği yer
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
@@ -94,7 +90,6 @@ fun PersonnelScreen(navController: NavController) {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    // Tıklanan cihazın ID'sini de yanımıza alarak yeni ekrana gidiyoruz
                                     navController.navigate("status_check_screen/${device.id}")
                                 },
                             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
