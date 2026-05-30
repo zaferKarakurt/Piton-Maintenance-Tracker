@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "550782668611",
+    "project_id": "pitonmaintenancetracker",
+    "storage_bucket": "pitonmaintenancetracker.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:550782668611:android:c4e9ada757ce5e8fb729f6",
+        "android_client_info": {
+          "package_name": "com.zafer.maintenancetracker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJpNzSkyxuZ-Jp5DlSeiGcw31BlSHH-pY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
