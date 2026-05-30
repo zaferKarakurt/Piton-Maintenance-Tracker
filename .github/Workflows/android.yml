@@ -34,10 +34,3 @@ jobs:
       - name: Build Debug APK
         run: ./gradlew assembleDebug
 
-      - name: Upload APK to Firebase App Distribution
-        uses: wzieba/Firebase-App-Distribution@v3
-        with:
-          appId: ${{ secrets.FIREBASE_APP_ID }}
-          token: ${{ secrets.FIREBASE_CLI_TOKEN }}
-          groups: testers
-          file: app/build/outputs/apk/debug/app-debug.apk
